@@ -66,3 +66,57 @@ export const linkWallet = async (req, res) => {
     return res.status(400).json({ error: "Invalid token or request" });
   }
 };
+
+// Developer login bypass
+export const devLogin = async (req, res) => {
+  try {
+    const { role } = req.query;
+    let email, name, googleId;
+    if (role === "lowerAdmin") {
+      email = "divya.p2023c@vitstudent.ac.in";
+      name = "Divya (Lower Admin)";
+      googleId = "dev-lower-admin-id";
+    } else if (role === "higherAdmin") {
+      email = "23f2001486@ds.study.iitm.ac.in";
+      name = "Kalpana (Higher Admin)";
+      googleId = "dev-higher-admin-id";
+    } else {
+      email = "student@example.com";
+      name = "John Student";
+      googleId = "dev-student-id";
+    }
+
+    let user = await User.findOne({ googleId });
+    if (!user) {
+      user = await User.create({
+        googleId,
+        name,
+        email,
+        role: role || "student",
+      });
+    }
+
+    const token = jwt.sign(
+      { userId: user._id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
+
+    const safeUser = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      wallet: user.wallet || null,
+    };
+
+    const redirectUrl = `/oauth-redirect?token=${token}&user=${encodeURIComponent(
+      JSON.stringify(safeUser)
+    )}`;
+    return res.redirect(redirectUrl);
+  } catch (err) {
+    console.error("devLogin error", err);
+    return res.redirect("/?error=dev_auth_failed");
+  }
+};
+

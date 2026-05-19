@@ -25,7 +25,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Serve frontend build
-app.use(express.static(path.join(__dirname, "../frontend/build")));
+app.use(express.static(path.join(__dirname, "../frontend/build"), { dotfiles: "allow" }));
 
 // MongoDB connection
 mongoose
@@ -87,8 +87,9 @@ app.get("/api/contract/abi", async (req, res) => {
     const contractFile = await fs.readFile(contractPath, "utf-8");
     const contractData = JSON.parse(contractFile);
 
-    // Replace 5777 with your Ganache network ID
-    const networkId = "5777";
+    // Dynamically retrieve the deployed network ID from the contract JSON artifact
+    const networkIds = Object.keys(contractData.networks || {});
+    const networkId = networkIds[networkIds.length - 1] || "5777";
     const contractAddress = contractData.networks[networkId]?.address;
 
     if (!contractAddress) {
@@ -106,7 +107,7 @@ app.get("/api/contract/abi", async (req, res) => {
 // Fallback to React app
 // ----------------------
 app.get("/*path", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
+  res.sendFile(path.join(__dirname, "../frontend/build/index.html"), { dotfiles: "allow" });
 });
 
 // Start server
@@ -114,25 +115,45 @@ const port = process.env.PORT || 4000;
 app.listen(port, () => console.log(`Server running on port ${port}`));
 async function addMultipleWifi() {
   try {
-    const wifiEntries = await wifi.create([
-      {
-        email: "divyaprabagaran2006@gmail.com",
-        wifiName: "HomeWiFi1",
-        wifiPassword: "Password1"
-      },
-      {
-        email: "kalpanaprabagaran77@gmail.com",
-        wifiName: "HomeWiFi2",
-        wifiPassword: "Password2"
-      },
-      {
-        email: "pkalpanabalu@gmail.com",
-        wifiName: "HomeWiFi3",
-        wifiPassword: "Password3"
-      }
-    ]);
+    const count = await wifi.countDocuments();
+    if (count === 0) {
+      const wifiEntries = await wifi.create([
+        {
+          email: "divyaprabagaran2006@gmail.com",
+          wifiName: "HomeWiFi1",
+          wifiPassword: "Password1"
+        },
+        {
+          email: "kalpanaprabagaran77@gmail.com",
+          wifiName: "HomeWiFi2",
+          wifiPassword: "Password2"
+        },
+        {
+          email: "pkalpanabalu@gmail.com",
+          wifiName: "HomeWiFi3",
+          wifiPassword: "Password3"
+        },
+        {
+          email: "student@example.com",
+          wifiName: "StudentWiFi",
+          wifiPassword: "PasswordStudent"
+        }
+      ]);
 
-    console.log("Inserted:", wifiEntries);
+      console.log("Inserted:", wifiEntries);
+    } else {
+      // Ensure student@example.com exists in the database
+      const existingStudent = await wifi.findOne({ email: "student@example.com" });
+      if (!existingStudent) {
+        await wifi.create({
+          email: "student@example.com",
+          wifiName: "StudentWiFi",
+          wifiPassword: "PasswordStudent"
+        });
+        console.log("Inserted missing student wifi credentials");
+      }
+      console.log("Wi-Fi entries initialized.");
+    }
   } catch (err) {
     console.error(err);
   }

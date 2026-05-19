@@ -14,10 +14,9 @@ export default function LowerAdmin({ account, connectMetaMask, disconnectMetaMas
       if (!window.ethereum || !account) return;
       try {
         const res = await axios.get("/api/contract/abi");
-        const abi = res.data.abi;
-        const contractAddress = "0x94fa2f8CDBe1Ea95F11B5c872b4A448D8033e2E6";
+        const { abi, address } = res.data;
         const web3 = new Web3(window.ethereum);
-        const c = new web3.eth.Contract(abi, contractAddress);
+        const c = new web3.eth.Contract(abi, address);
         setContract(c);
 
         const allComplaints = await c.methods.getAllComplaints().call();

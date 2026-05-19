@@ -1,6 +1,6 @@
 import express from "express";
 import passport from "passport";
-import { googleCallback, linkWallet } from "../controllers/authController.js";
+import { googleCallback, linkWallet, devLogin } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -22,5 +22,9 @@ router.get(
 // @desc Link wallet to user
 // @route POST /auth/link-wallet
 router.post("/link-wallet", linkWallet);
+
+// @desc Developer login bypass for local testing
+// @route GET /auth/dev-login
+router.get("/dev-login", devLogin);
 
 export default router;

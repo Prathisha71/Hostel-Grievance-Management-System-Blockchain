@@ -20,11 +20,10 @@ export default function AddComplaintForm({ account, connectMetaMask, disconnectM
       if (!window.ethereum) return;
       try {
         const res = await axios.get("/api/contract/abi");
-        const { abi } = res.data;
+        const { abi, address } = res.data;
 
         const web3 = new Web3(window.ethereum);
-        const contractAddress = "0x94fa2f8CDBe1Ea95F11B5c872b4A448D8033e2E6";
-        const c = new web3.eth.Contract(abi, contractAddress);
+        const c = new web3.eth.Contract(abi, address);
         setContract(c);
       } catch (err) {
         console.error("Error loading contract:", err);
